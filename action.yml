@@ -49,8 +49,9 @@ runs:
       shell: bash
 
     - name: Run tests
+      id: acceptance-tests
       working-directory: ${{ inputs.TESTS_SRC_DIR }}
-      run: export NODE_ENV=${{ inputs.ENVIRONMENT_NAME }} && npm test || true
+      run: export NODE_ENV=${{ inputs.ENVIRONMENT_NAME }} && npm test || if [ $? -eq 0 ]; then echo "TESTS_STATUS=success" >> $GITHUB_ENV; else echo "TESTS_STATUS=failure" >> $GITHUB_ENV; fi
       shell: bash
 
     - name: Deploy to Netlify
@@ -78,20 +79,20 @@ runs:
       #continue-on-error: true
       with:
         path: "acceptance/target/site/serenity/summary.txt"
-      
+        
     - name: Send Slack notification (master only)
-      uses: rtCamp/action-slack-notify@v2
+      uses: rtCamp/action-slack-notify@v2.2.0
       #if: always() && github.ref == 'refs/heads/master'
       env:
         SLACK_WEBHOOK: ${{ inputs.SLACK_WEBHOOK_QA }}
         SLACK_USERNAME: Acceptance Tests for ${{ github.event.inputs.RELEASE_CODENAME }} release
         SLACK_ICON_EMOJI: ":shipit:"
-        SLACK_COLOR: ${{job.status}}
+        SLACK_COLOR: ${{env.TESTS_STATUS}}  #${{job.status}}
         SLACK_CHANNEL:  logging-${{inputs.ENVIRONMENT_NAME}} 
         SLACK_TITLE: ${{ steps.tests-summary.outputs.contents }}
         SLACK_MESSAGE: ${{ steps.publish-report.outputs.deploy-url }}
         SLACK_FOOTER: ${{ format('https://github.com/{0}/commit/{1}/checks', github.repository, github.sha) }}
-        MSG_MINIMAL: true
+        MSG_MINIMAL: 'true'
 
 branding:
   icon: 'check-circle'
