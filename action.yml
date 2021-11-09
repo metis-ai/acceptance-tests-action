@@ -51,7 +51,7 @@ runs:
     - name: Run tests
       id: acceptance-tests
       working-directory: ${{ inputs.TESTS_SRC_DIR }}
-      run: export NODE_ENV=${{ inputs.ENVIRONMENT_NAME }} && npm test || if [ $? -eq 0 ]; then echo "TESTS_STATUS=good" >> $GITHUB_ENV; else echo "TESTS_STATUS=failure" >> $GITHUB_ENV; fi
+      run: echo "TESTS_STATUS=good" >> $GITHUB_ENV && export NODE_ENV=${{ inputs.ENVIRONMENT_NAME }} && npm test || echo "TESTS_STATUS=failure" >> $GITHUB_ENV
       shell: bash
       #continue-on-error: true
 
