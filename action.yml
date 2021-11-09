@@ -86,7 +86,7 @@ runs:
       if: always() #&& github.ref == 'refs/heads/master'
       env:
         SLACK_WEBHOOK: ${{ inputs.SLACK_WEBHOOK_QA }}
-        SLACK_USERNAME: Acceptance Tests for ${{ github.event.inputs.RELEASE_CODENAME }} release
+        SLACK_USERNAME: Acceptance Tests for ${{ inputs.RELEASE_CODENAME }} release
         SLACK_ICON_EMOJI: ":shipit:"
         SLACK_COLOR: ${{env.TESTS_STATUS}}
         SLACK_CHANNEL:  logging-${{inputs.ENVIRONMENT_NAME}} 
