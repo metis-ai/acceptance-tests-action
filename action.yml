@@ -12,9 +12,6 @@ inputs:
     description: 'Codename for release'
     required: false
     default: 'ci'
-  GITHUB TOKEN:
-    description: "GITHUB token for the repo with the tests"
-    required: true
   NETLIFY_AUTH_TOKEN:
     description: "Netlify's PAT"
     required: true
@@ -62,7 +59,6 @@ runs:
       with:
         publish-dir: "./acceptance/target/site/serenity/"
         production-branch: master
-        github-token: ${{ inputs.GITHUB_TOKEN }}
         deploy-message: Deploy Serenity reports for ${{ github.event.inputs.RELEASE_CODENAME }} release
         enable-pull-request-comment: false
         enable-commit-comment: true
