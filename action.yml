@@ -63,12 +63,10 @@ runs:
       with:
         publish-dir: "./acceptance/target/site/serenity/"
         production-branch: master
-        deploy-message: Deploy Serenity reports for ${{ github.event.inputs.RELEASE_CODENAME }} release
+        deploy-message: Deploy Serenity reports for ${{ inputs.RELEASE_CODENAME }} release
         enable-pull-request-comment: false
-        enable-commit-comment: true
-        overwrites-pull-request-comment: true
         github-deployment-environment: ${{ inputs.ENVIRONMENT_NAME }}
-        alias: ${{ github.event.inputs.RELEASE_CODENAME }}
+        alias: ${{ inputs.RELEASE_CODENAME }}
       env:
         NETLIFY_AUTH_TOKEN: ${{ inputs.NETLIFY_AUTH_TOKEN }}
         NETLIFY_SITE_ID: ${{ inputs.NETLIFY_SITE_ID }}
