@@ -58,15 +58,15 @@ runs:
 
     - name: Deploy to Netlify
       id: publish-report
-      uses: nwtgck/actions-netlify@v1.2
+      uses: nwtgck/actions-netlify@v1.2.3
       if: always() && hashFiles('acceptance/target/site/serenity/summary.txt') != ''
       with:
         publish-dir: "./acceptance/target/site/serenity/"
-        production-branch: master
+        #production-branch: master #we will use deploy-preview approach
         deploy-message: Deploy Serenity reports for ${{ inputs.RELEASE_CODENAME }} release
         enable-pull-request-comment: false
         github-deployment-environment: ${{ inputs.ENVIRONMENT_NAME }}
-        alias: ${{ inputs.RELEASE_CODENAME }}
+        alias: deploy-preview-${{ inputs.RELEASE_CODENAME }}
       env:
         NETLIFY_AUTH_TOKEN: ${{ inputs.NETLIFY_AUTH_TOKEN }}
         NETLIFY_SITE_ID: ${{ inputs.NETLIFY_SITE_ID }}
@@ -81,7 +81,7 @@ runs:
         
     - name: Send Slack notification (master only)
       uses: rtCamp/action-slack-notify@v2.2.0
-      if: always() #&& github.ref == 'refs/heads/master'
+      if: always()
       env:
         SLACK_WEBHOOK: ${{ inputs.SLACK_WEBHOOK_QA }}
         SLACK_USERNAME: Acceptance Tests for ${{ inputs.RELEASE_CODENAME }} release
@@ -92,6 +92,13 @@ runs:
         SLACK_MESSAGE: ${{ steps.publish-report.outputs.deploy-url }}
         SLACK_FOOTER: ${{ format('https://github.com/{0}/commit/{1}/checks', github.repository, github.sha) }}
         MSG_MINIMAL: 'true'
+
+    - name: Fail the build if any test has failed
+      if: ${{env.TESTS_STATUS != 'good'}} 
+      uses: actions/github-script@v6
+      with:
+        script: |
+          core.setFailed('Some tests failed!')
 
 branding:
   icon: 'check-circle'
