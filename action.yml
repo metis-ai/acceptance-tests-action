@@ -57,7 +57,7 @@ runs:
     - name: Run tests
       id: acceptance-tests
       working-directory: ${{ inputs.TESTS_SRC_DIR }}
-      run: echo "TESTS_STATUS=good" >> $GITHUB_ENV && export NODE_ENV=${{ inputs.ENVIRONMENT_NAME }} && ${{ inputs.TESTS_COMMAND }} || echo "TESTS_STATUS=failure" >> $GITHUB_ENV
+      run: echo "TESTS_STATUS=success" >> $GITHUB_ENV && export NODE_ENV=${{ inputs.ENVIRONMENT_NAME }} && ${{ inputs.TESTS_COMMAND }} || echo "TESTS_STATUS=failure" >> $GITHUB_ENV
       shell: bash
       #continue-on-error: true
 
@@ -84,22 +84,34 @@ runs:
       with:
         path: "acceptance/target/site/serenity/summary.txt"
         
+    # - name: Send Slack notification
+    #   uses: rtCamp/action-slack-notify@v2.2.0
+    #   if: always()
+    #   env:
+    #     SLACK_WEBHOOK: ${{ inputs.SLACK_WEBHOOK_QA }}
+    #     SLACK_USERNAME: Acceptance Tests for ${{ inputs.RELEASE_CODENAME }} release
+    #     SLACK_ICON_EMOJI: ":shipit:"
+    #     SLACK_COLOR: ${{env.TESTS_STATUS}}
+    #     SLACK_CHANNEL:  logging-${{inputs.ENVIRONMENT_NAME}} 
+    #     SLACK_TITLE: ${{ steps.tests-summary.outputs.contents }}
+    #     SLACK_MESSAGE: ${{ steps.publish-report.outputs.deploy-url }}
+    #     SLACK_FOOTER: ${{ format('https://github.com/{0}/commit/{1}/checks', github.repository, github.sha) }}
+    #     MSG_MINIMAL: 'true'
     - name: Send Slack notification
-      uses: rtCamp/action-slack-notify@v2.2.0
-      if: always()
+      uses: 8398a7/action-slack@v3
+      with:
+        status: ${{env.TESTS_STATUS}}
+        text: ${{ steps.tests-summary.outputs.contents }}  Full report ${{ steps.publish-report.outputs.deploy-url }}
+        icon_emoji: ":shipit:"
+        channel: logging-${{inputs.ENVIRONMENT_NAME}} 
+        fields: commit,author,workflow
+
       env:
-        SLACK_WEBHOOK: ${{ inputs.SLACK_WEBHOOK_QA }}
-        SLACK_USERNAME: Acceptance Tests for ${{ inputs.RELEASE_CODENAME }} release
-        SLACK_ICON_EMOJI: ":shipit:"
-        SLACK_COLOR: ${{env.TESTS_STATUS}}
-        SLACK_CHANNEL:  logging-${{inputs.ENVIRONMENT_NAME}} 
-        SLACK_TITLE: ${{ steps.tests-summary.outputs.contents }}
-        SLACK_MESSAGE: ${{ steps.publish-report.outputs.deploy-url }}
-        SLACK_FOOTER: ${{ format('https://github.com/{0}/commit/{1}/checks', github.repository, github.sha) }}
-        MSG_MINIMAL: 'true'
+        SLACK_WEBHOOK_URL: ${{ inputs.SLACK_WEBHOOK_QA }}
+      if: always() 
 
     - name: Fail the build if any test has failed
-      if: ${{env.TESTS_STATUS != 'good'}} 
+      if: ${{env.TESTS_STATUS != 'success'}} 
       uses: actions/github-script@v6
       with:
         script: |
