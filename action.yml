@@ -84,30 +84,78 @@ runs:
       with:
         path: "acceptance/target/site/serenity/summary.txt"
         
-    # - name: Send Slack notification
-    #   uses: rtCamp/action-slack-notify@v2.2.0
-    #   if: always()
-    #   env:
-    #     SLACK_WEBHOOK: ${{ inputs.SLACK_WEBHOOK_QA }}
-    #     SLACK_USERNAME: Acceptance Tests for ${{ inputs.RELEASE_CODENAME }} release
-    #     SLACK_ICON_EMOJI: ":shipit:"
-    #     SLACK_COLOR: ${{env.TESTS_STATUS}}
-    #     SLACK_CHANNEL:  logging-${{inputs.ENVIRONMENT_NAME}} 
-    #     SLACK_TITLE: ${{ steps.tests-summary.outputs.contents }}
-    #     SLACK_MESSAGE: ${{ steps.publish-report.outputs.deploy-url }}
-    #     SLACK_FOOTER: ${{ format('https://github.com/{0}/commit/{1}/checks', github.repository, github.sha) }}
-    #     MSG_MINIMAL: 'true'
-    - name: Send Slack notification
-      uses: 8398a7/action-slack@v3
-      with:
-        status: ${{env.TESTS_STATUS}}
-        text: ${{ steps.tests-summary.outputs.contents }}  Full report ${{ steps.publish-report.outputs.deploy-url }}
-        icon_emoji: ":shipit:"
-        channel: logging-${{inputs.ENVIRONMENT_NAME}} 
-        fields: commit,author,workflow
+    - name: Set slack icon
+      id: setIcon
+      run: |
+        if [ ${{env.TESTS_STATUS}} = "success" ]; then
+          echo "::set-output name=SLACK_ICON::white_check_mark"
+        else
+          echo "::set-output name=SLACK_ICON::warning"
+        fi
+      shell: bash
+      if: always() 
 
+      #App message. See https://app.slack.com/block-kit-builder
+    - name: Send Slack notification
+      id: slack
+      uses: slackapi/slack-github-action@v1.18.0
+      with:
+        payload: |
+          {
+          "text": "Test results",
+          "icon_emoji": ":${{steps.setIcon.outputs.SLACK_ICON}}:",
+          "channel": "logging-${{inputs.ENVIRONMENT_NAME}}" ,
+          "blocks": [
+            {
+              "type": "header",
+              "text": {
+                "type": "plain_text",
+                "text": "Acceptance tests for ${{inputs.RELEASE_CODENAME}} have finished!"
+              }
+            },
+            {
+              "type": "section",
+              "text": {
+                "type": "plain_text",
+                "text": ${{ toJSON(steps.tests-summary.outputs.contents) }}
+              }
+            },
+            {
+              "type": "section",
+              "text": {
+                "type": "mrkdwn",
+                "text": "<${{ steps.publish-report.outputs.deploy-url }}|Check out full results>"
+              }
+            },
+            {
+            "type": "divider"
+            },
+            {
+              "type": "section",
+              "text": {
+                "type": "mrkdwn",
+                "text": "GitHub Action build result: ${{ job.status }}"
+              }
+            },
+            {
+              "type": "section",
+              "text": {
+                "type": "mrkdwn",
+                "text": "PR/commit: ${{ github.event.pull_request.html_url || github.event.head_commit.url }}"
+              }
+            },
+            {
+              "type": "section",
+              "text": {
+                "type": "mrkdwn",
+                "text": "Action run: https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}"
+              }
+            }
+          ]
+          }
       env:
         SLACK_WEBHOOK_URL: ${{ inputs.SLACK_WEBHOOK_QA }}
+        SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
       if: always() 
 
     - name: Fail the build if any test has failed
