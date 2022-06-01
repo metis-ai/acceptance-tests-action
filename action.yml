@@ -12,6 +12,7 @@ inputs:
   TESTS_SRC_DIR:
     description: "Directory where the tests src is"
     required: true
+    default: './acceptance'
   TESTS_COMMAND:
     description: 'command to run tests. For example npm run test-ci'
     required: false
@@ -53,6 +54,51 @@ runs:
       working-directory: ${{ inputs.TESTS_SRC_DIR }}
       run: npm ci
       shell: bash
+
+    - name: print Chrome details
+      run: google-chrome --version && chromedriver --version
+      shell: bash
+      continue-on-error: true
+
+      #App message. See https://app.slack.com/block-kit-builder
+    - name: Send pre-test Slack notification
+      id: slack-pre-test
+      uses: slackapi/slack-github-action@v1.19.0
+      continue-on-error: true
+      with:
+        payload: |
+          {
+          "text": "Acceptance Tests",
+          "icon_emoji": ":test_tube:",
+          "channel": "logging-${{inputs.ENVIRONMENT_NAME}}" ,
+          "blocks": [
+            {
+              "type": "header",
+              "text": {
+                "type": "plain_text",
+                "text": "Acceptance tests running in this environment"
+              }
+            },
+            {
+              "type": "section",
+              "text": {
+                "type": "mrkdwn",
+                "text": "Please do not deploy in this env until tests have finished :skull:"
+              }
+            },
+            
+            {
+              "type": "section",
+              "text": {
+                "type": "mrkdwn",
+                "text": "Action run: https://github.com/${{github.repository}}/actions/runs/${{github.run_id}}"
+              }
+            }
+          ]
+          }
+      env:
+        SLACK_WEBHOOK_URL: ${{ inputs.SLACK_WEBHOOK_QA }}
+        SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
 
     - name: Run tests
       id: acceptance-tests
@@ -96,9 +142,9 @@ runs:
       if: always() 
 
       #App message. See https://app.slack.com/block-kit-builder
-    - name: Send Slack notification
-      id: slack
-      uses: slackapi/slack-github-action@v1.18.0
+    - name: Send after-test Slack notification
+      id: slack-after-test
+      uses: slackapi/slack-github-action@v1.19.0
       with:
         payload: |
           {
