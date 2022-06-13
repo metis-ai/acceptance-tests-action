@@ -5,10 +5,6 @@ inputs:
   ENVIRONMENT_NAME:
     description: "Name of the environment where tests will run"
     required: true
-  # USE_CACHE:
-  #   description: use cache for npm?
-  #   required: false
-  #   default: 'true'
   TESTS_SRC_DIR:
     description: "Directory where the tests src is"
     required: false
@@ -154,8 +150,8 @@ runs:
             {
               "type": "header",
               "text": {
-                "type": "plain_text",
-                "text": "Acceptance tests for ${{inputs.RELEASE_CODENAME}} have finished!"
+                "type": "mrkdwn",
+                "text": ":${{steps.setIcon.outputs.SLACK_ICON}}: Acceptance tests for ${{inputs.RELEASE_CODENAME}} have finished!"
               }
             },
             {
