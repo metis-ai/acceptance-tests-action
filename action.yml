@@ -71,7 +71,7 @@ runs:
               "type": "header",
               "text": {
                 "type": "plain_text",
-                "text": "Acceptance tests (${{inputs.TESTS_COMMAND}}) running in this environment"
+                "text": ":test_tube: Acceptance tests (${{inputs.TESTS_COMMAND}}) running in this environment"
               }
             },
             {
