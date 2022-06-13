@@ -5,13 +5,13 @@ inputs:
   ENVIRONMENT_NAME:
     description: "Name of the environment where tests will run"
     required: true
-  USE_CACHE:
-    description: use cache for npm?
-    required: false
-    default: 'true'
+  # USE_CACHE:
+  #   description: use cache for npm?
+  #   required: false
+  #   default: 'true'
   TESTS_SRC_DIR:
     description: "Directory where the tests src is"
-    required: true
+    required: false
     default: './acceptance'
   TESTS_COMMAND:
     description: 'command to run tests. For example npm run test-ci'
@@ -41,14 +41,13 @@ runs:
       with:
         node-version: "14"
 
-    # - name: Setting up cache
-    #   uses: actions/cache@v2
-    #   if: ${{ inputs.USE_CACHE }}=='true'
-    #   with:
-    #     path: ~/.npm
-    #     key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-    #     restore-keys: |
-    #       ${{ runner.os }}-node-
+    - name: Setting up cache
+      uses: actions/cache@v2
+      with:
+        path: ~/.npm
+        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-
 
     - name: Install project dependencies
       working-directory: ${{ inputs.TESTS_SRC_DIR }}
