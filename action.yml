@@ -150,7 +150,7 @@ runs:
             {
               "type": "header",
               "text": {
-                "type": "mrkdwn",
+                "type": "plain_text",
                 "text": ":${{steps.setIcon.outputs.SLACK_ICON}}: Acceptance tests for ${{inputs.RELEASE_CODENAME}} have finished!"
               }
             },
