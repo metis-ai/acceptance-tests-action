@@ -115,7 +115,7 @@ runs:
               "type": "header",
               "text": {
                 "type": "plain_text",
-                "text": ":${{steps.setIcon.outputs.SLACK_ICON}}: Acceptance tests for ${{inputs.RELEASE_CODENAME}} have finished!"
+                "text": ":${{steps.setIcon.outputs.SLACK_ICON}}: Acceptance tests for ${{inputs.RELEASE_CODENAME}} in ${{inputs.ENVIRONMENT_NAME}} have finished with ${{env.TESTS_STATUS}}!"
               }
             },
             {
