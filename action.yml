@@ -54,10 +54,11 @@ runs:
       run: npm ci
       shell: bash
 
-    - name: print Chrome details
-      run: google-chrome --version && chromedriver --version
-      shell: bash
-      continue-on-error: true
+    # Commented because there is no chromedriver in aws linux box
+    # - name: print Chrome details
+    #   run: google-chrome --version && chromedriver --version
+    #   shell: bash
+    #   continue-on-error: true
 
     - name: Run tests
       id: acceptance-tests
