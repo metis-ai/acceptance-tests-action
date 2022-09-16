@@ -2,6 +2,10 @@ name: "Run Acceptance tests & Publish results"
 description: "Run Acceptance tests with SerenityJS & Publish results to Netlify"
 
 inputs:
+  NAME:
+    description: "Functional group or block"
+    default: acceptance-tests
+    required: false
   ENVIRONMENT_NAME:
     description: "Name of the environment where tests will run"
     required: true
@@ -25,7 +29,7 @@ inputs:
     required: true
   SLACK_WEBHOOK_QA:
     description: "Slack's webhook"
-    required: true
+    required: false
   CUSTOM_IMAGE:
     description: "Addtional image for Slack's notification"
     required: false
@@ -67,6 +71,16 @@ runs:
       shell: bash
       #continue-on-error: true
 
+    - name: Upload Test results 
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: "test-results-${{ inputs.ENVIRONMENT_NAME }}"
+        path: |
+          ./acceptance/target/*.xml
+          ./acceptance/target/site/serenity/*.png
+          ./acceptance/target/site/serenity/*.json
+
     - name: Deploy to Netlify
       id: publish-report
       uses: nwtgck/actions-netlify@v1.2.3
@@ -84,14 +98,15 @@ runs:
 
     - name: Read tests summary
       id: tests-summary
+      if: ${{ inputs.SLACK_WEBHOOK_QA }}!='' && hashFiles('acceptance/target/site/serenity/summary.txt') != '' && always()
       uses: andstor/file-reader-action@v1
-      if: always() && hashFiles('acceptance/target/site/serenity/summary.txt') != ''
       #continue-on-error: true
       with:
         path: "acceptance/target/site/serenity/summary.txt"
         
     - name: Set slack icon
       id: setIcon
+      if: ${{ inputs.SLACK_WEBHOOK_QA }}!='' && always()
       run: |
         if [ ${{env.TESTS_STATUS}} = "success" ]; then
           echo "::set-output name=SLACK_ICON::white_check_mark"
@@ -99,11 +114,11 @@ runs:
           echo "::set-output name=SLACK_ICON::warning"
         fi
       shell: bash
-      if: always() 
 
       #App message. See https://app.slack.com/block-kit-builder
     - name: Send after-test Slack notification
       id: slack-after-test
+      if: ${{ inputs.SLACK_WEBHOOK_QA }}!='' && always()
       uses: slackapi/slack-github-action@v1.19.0
       with:
         payload: |
@@ -170,7 +185,6 @@ runs:
       env:
         SLACK_WEBHOOK_URL: ${{ inputs.SLACK_WEBHOOK_QA }}
         SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
-      if: always() 
 
     - name: Fail the build if any test has failed
       if: ${{env.TESTS_STATUS != 'success'}} 
