@@ -75,7 +75,7 @@ runs:
       if: always()
       uses: actions/upload-artifact@v3
       with:
-        name: "test-results-${{ inputs.ENVIRONMENT_NAME }}"
+        name: "test-results-${{ inputs.NAME }}"
         path: |
           ./acceptance/target/*.xml
           ./acceptance/target/site/serenity/*.png
@@ -96,6 +96,7 @@ runs:
         NETLIFY_AUTH_TOKEN: ${{ inputs.NETLIFY_AUTH_TOKEN }}
         NETLIFY_SITE_ID: ${{ inputs.NETLIFY_SITE_ID }}
 
+########### Optional Slack notification
     - name: Read tests summary
       id: tests-summary
       if: ${{ inputs.SLACK_WEBHOOK_QA }}!='' && hashFiles('acceptance/target/site/serenity/summary.txt') != '' && always()
