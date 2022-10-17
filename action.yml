@@ -83,7 +83,7 @@ runs:
 
     - name: Deploy to Netlify
       id: publish-report
-      uses: nwtgck/actions-netlify@v1.2.3
+      uses: nwtgck/actions-netlify@v1.2
       if: always() && hashFiles('acceptance/target/site/serenity/summary.txt') != ''
       with:
         publish-dir: "./acceptance/target/site/serenity/"
