@@ -100,7 +100,7 @@ runs:
     - name: Read tests summary
       id: tests-summary
       if: ${{ inputs.SLACK_WEBHOOK_QA }}!='' && hashFiles('acceptance/target/site/serenity/summary.txt') != '' && always()
-      uses: andstor/file-reader-action@v1
+      uses: juliangruber/read-file-action@v1
       #continue-on-error: true
       with:
         path: "acceptance/target/site/serenity/summary.txt"
@@ -154,7 +154,7 @@ runs:
               "type": "section",
               "text": {
                 "type": "plain_text",
-                "text": ${{ toJSON(steps.tests-summary.outputs.contents) }}
+                "text": ${{ toJSON(steps.tests-summary.outputs.content) }}
               }
             },
             {
