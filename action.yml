@@ -31,7 +31,7 @@ inputs:
     description: "Slack's webhook"
     required: false
   CUSTOM_IMAGE:
-    description: "Addtional image for Slack's notification"
+    description: "Additional image for Slack's notification"
     required: false
     default: 'https://cdn-icons-png.flaticon.com/512/1581/1581884.png' #<a href="https://www.flaticon.es/iconos-gratis/examen" title="examen iconos">Examen iconos creados por Freepik - Flaticon</a>
     
@@ -43,7 +43,7 @@ runs:
     - name: Setup Node.js environment
       uses: actions/setup-node@v3
       with:
-        node-version: "14"
+        node-version: "16"
 
     - name: Setting up cache
       uses: actions/cache@v3
