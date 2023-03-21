@@ -69,7 +69,6 @@ runs:
       working-directory: ${{ inputs.TESTS_SRC_DIR }}
       run: echo "TESTS_STATUS=success" >> $GITHUB_ENV && export NODE_ENV=${{ inputs.ENVIRONMENT_NAME }} && ${{ inputs.TESTS_COMMAND }} || echo "TESTS_STATUS=failure" >> $GITHUB_ENV
       shell: bash
-      #continue-on-error: true
 
     - name: Upload Test results 
       if: always()
@@ -81,10 +80,16 @@ runs:
           ./acceptance/target/site/serenity/*.png
           ./acceptance/target/site/serenity/*.json
 
+    - name: Generate test report #we only generate report if it does not exist
+      if: always() && hashFiles('acceptance/target/site/serenity/index.html') == '' 
+      working-directory: ${{ inputs.TESTS_SRC_DIR }}
+      run: npm run test:report
+      shell: bash
+
     - name: Deploy to Netlify
       id: publish-report
       uses: nwtgck/actions-netlify@v2
-      if: always() && hashFiles('acceptance/target/site/serenity/summary.txt') != ''
+      if: always() && hashFiles('acceptance/target/site/serenity/index.html') != ''
       with:
         publish-dir: "./acceptance/target/site/serenity/"
         #production-branch: master #we will use deploy-preview approach
