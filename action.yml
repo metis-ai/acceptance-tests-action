@@ -89,7 +89,7 @@ runs:
 
     - name: Read tests summary
       id: tests-summary
-      if: ${{ inputs.SLACK_WEBHOOK_QA }}!='' && hashFiles('acceptance/target/site/serenity/summary.txt') != '' && always()
+      if: inputs.SLACK_WEBHOOK_QA!='' && hashFiles('acceptance/target/site/serenity/summary.txt') != '' && always()
       uses: juliangruber/read-file-action@v1
       continue-on-error: true
       with:
@@ -110,7 +110,7 @@ runs:
         
     - name: Set slack icon
       id: setIcon
-      if: ${{ inputs.SLACK_WEBHOOK_QA }}!='' && always()
+      if: inputs.SLACK_WEBHOOK_QA!='' && always()
       run: |
         if [ ${{env.TESTS_STATUS}} = "success" ]; then
           echo "SLACK_ICON=white_check_mark" >> $GITHUB_OUTPUT
@@ -122,7 +122,7 @@ runs:
       #App message. See https://app.slack.com/block-kit-builder
     - name: Send after-test Slack notification
       id: slack-after-test
-      if: ${{ inputs.SLACK_WEBHOOK_QA }}!='' && always()
+      if: inputs.SLACK_WEBHOOK_QA!='' && always()
       uses: slackapi/slack-github-action@v1
       with:
         payload: |
@@ -191,7 +191,7 @@ runs:
         SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
 
     - name: Fail the build if any test has failed
-      if: ${{env.TESTS_STATUS != 'success'}} 
+      if: env.TESTS_STATUS != 'success'
       uses: actions/github-script@v6
       with:
         script: |
