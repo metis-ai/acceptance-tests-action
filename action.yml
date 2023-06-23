@@ -83,7 +83,7 @@ runs:
       with:
         aws-access-key-id: ${{ inputs.AWS_GH_ACTIONS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ inputs.AWS_GH_ACTIONS_SECRET_ACCESS_KEY }}
-        aws-region: ${{ inputs.AWS_REGION }}
+        aws-region: eu-west-1
         role-to-assume: ${{ steps.setEnvs.outputs.AWS_TESTS_EXECUTOR_ROLE }}
         role-duration-seconds: 900
         role-session-name: system-tests
