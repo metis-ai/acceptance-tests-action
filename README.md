@@ -14,24 +14,49 @@ Internally, this action uses the following actions (Big thanks!:
 
 See [action.yml](action.yml)
 
+With only the required parameters:
+
 ```yaml
-
-
 steps:
-    uses: actions/checkout@v2 # checkout the code of your bot
+    - uses: actions/checkout@v3
+      with:
+        repository: metis-ai/hubtype-frontend-v2
+        token: ${{ secrets.G_ACCESS_TOKEN }}
 
     - name: Run acceptance tests
-        uses: metis-ai/acceptance-tests-action@main
-        
-        with:
-          ENVIRONMENT_NAME: staging
-          TESTS_SRC_DIR: relative_tests_dir
-          RELEASE_CODENAME: XXX
-          GITHUB TOKEN: your_gh_token
-          NETLIFY_AUTH_TOKEN: Netlify's PAT #see https://github.com/nwtgck/actions-netlify#optional-inputs
-          NETLIFY_SITE_ID: Netlify's site id
-          SLACK_WEBHOOK_QA: configured_slack_webhook
+      uses: metis-ai/acceptance-tests-action@main
+      with:
+        ENVIRONMENT_NAME: staging
+        NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+        NETLIFY_SITE_ID: Netlify's site id
+        AWS_GH_ACTIONS_ACCESS_KEY_ID: ${{ secrets.AWS_GH_ACTIONS_ACCESS_KEY_ID }}
+        AWS_GH_ACTIONS_SECRET_ACCESS_KEY: ${{ secrets.AWS_GH_ACTIONS_SECRET_ACCESS_KEY }}
+```
+
+With all parameters:
+
+```yaml
+steps:
+    - uses: actions/checkout@v3
+      with:
+        repository: metis-ai/hubtype-frontend-v2
+        token: ${{ secrets.G_ACCESS_TOKEN }}
+
+    - name: Run acceptance tests
+      uses: metis-ai/acceptance-tests-action@main
+      with:
+        ENVIRONMENT_NAME: staging
+        TESTS_COMMAND: npm test-login
+        RELEASE_CODENAME: v20230623.0
+        NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+        NETLIFY_SITE_ID: Netlify's site id
+        SLACK_WEBHOOK_QA: ${{ secrets.SLACK_WEBHOOK_TEAM_PLATFORM }}
+        CUSTOM_IMAGE: https://cdn-icons-png.flaticon.com/512/1581/1581884.png
+        TESTS_SRC_DIR: ./acceptance
+        AWS_GH_ACTIONS_ACCESS_KEY_ID: ${{ secrets.AWS_GH_ACTIONS_ACCESS_KEY_ID }}
+        AWS_GH_ACTIONS_SECRET_ACCESS_KEY: ${{ secrets.AWS_GH_ACTIONS_SECRET_ACCESS_KEY }}
 ```
 
 # License
+
 The scripts and documentation in this project are released under the [MIT License](LICENSE)
