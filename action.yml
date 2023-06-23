@@ -86,11 +86,12 @@ runs:
         aws-region: eu-west-1
         role-to-assume: ${{ steps.setEnvs.outputs.AWS_TESTS_EXECUTOR_ROLE }}
         role-duration-seconds: 900
-        role-session-name: system-tests
+        role-session-name: acceptance-tests
 
     - name: build .env.${{ inputs.ENVIRONMENT_NAME }} file
+      working-directory: ${{ inputs.TESTS_SRC_DIR }}
       shell: bash
-      run: bash system-tests/generate-dotenv.sh ${{ inputs.ENVIRONMENT_NAME }}
+      run: bash generate-dotenv.sh ${{ inputs.ENVIRONMENT_NAME }}
 
     - name: Run tests
       id: acceptance-tests
