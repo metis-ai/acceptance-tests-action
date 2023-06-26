@@ -2,17 +2,9 @@ name: "Run Acceptance tests & Publish results"
 description: "Run Acceptance tests with SerenityJS & Publish results to Netlify"
 
 inputs:
-  NAME:
-    description: "Functional group or block"
-    default: acceptance-tests
-    required: false
   ENVIRONMENT_NAME:
     description: "Name of the environment where tests will run"
     required: true
-  TESTS_SRC_DIR:
-    description: "Directory where the tests src is"
-    required: false
-    default: './acceptance'
   TESTS_COMMAND:
     description: 'command to run tests. For example npm run test-ci'
     required: false
@@ -22,7 +14,7 @@ inputs:
     required: false
     default: 'ci'
   NETLIFY_AUTH_TOKEN:
-    description: "Netlify's PAT"
+    description: "Netlify's PAT, see https://github.com/nwtgck/actions-netlify#optional-inputs"
     required: true
   NETLIFY_SITE_ID:
     description: "API ID from your site in Netlify"
@@ -34,11 +26,45 @@ inputs:
     description: "Additional image for Slack's notification"
     required: false
     default: 'https://cdn-icons-png.flaticon.com/512/1581/1581884.png' #<a href="https://www.flaticon.es/iconos-gratis/examen" title="examen iconos">Examen iconos creados por Freepik - Flaticon</a>
+  TESTS_SRC_DIR:
+    description: "Directory where the tests src is"
+    required: false
+    default: './acceptance'
+  AWS_GH_ACTIONS_ACCESS_KEY_ID:
+    description: 'The AWS key id'
+    required: true
+  AWS_GH_ACTIONS_SECRET_ACCESS_KEY:
+    description: 'The AWS access key'
+    required: true
     
 #TODO: since continue-on-error is not supported on composite actions, lines using it are commented
 runs:
   using: "composite"
   steps:
+
+    - name: Set env variables for ${{ inputs.ENVIRONMENT_NAME }}
+      id: setEnvs
+      shell: bash
+      run: |
+        echo selected env: ${{ inputs.ENVIRONMENT_NAME }}
+        case ${{ inputs.ENVIRONMENT_NAME }} in
+        (prod|prod-beta|prod-demo)
+          echo "AWS_TESTS_EXECUTOR_ROLE=arn:aws:iam::694122753980:role/machine/ht-prod-ent0-euw1-ent0-machine-tests-executor" >> $GITHUB_OUTPUT
+        ;;
+        (ci|qa-int|qa-int-beta)
+          echo "AWS_TESTS_EXECUTOR_ROLE=arn:aws:iam::319689072149:role/machine/ht-qa-test-euw1-int-machine-tests-executor" >> $GITHUB_OUTPUT
+        ;;
+        (dev)
+          echo "AWS_TESTS_EXECUTOR_ROLE=arn:aws:iam::246199412647:role/machine/ht-dev-dev-euw1-dev-machine-tests-executor" >> $GITHUB_OUTPUT
+          ;;
+        (dev2)
+          echo "AWS_TESTS_EXECUTOR_ROLE=arn:aws:iam::246199412647:role/machine/ht-dev-dev-euw1-dev2-machine-tests-executor" >> $GITHUB_OUTPUT
+          ;;
+        (*)
+          echo -n "No env vars found for ${{ inputs.ENVIRONMENT_NAME }}! Aborting deployment"
+          exit 1
+          ;;
+        esac
 
     - name: Setup Node.js environment
       uses: actions/setup-node@v3
@@ -47,18 +73,25 @@ runs:
         cache: 'npm'
         cache-dependency-path: 'acceptance/package-lock.json'
 
-    # - name: Setting up cache
-    #   uses: actions/cache@v3
-    #   with:
-    #     path: ~/.npm
-    #     key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-    #     restore-keys: |
-    #       ${{ runner.os }}-node-
-
     - name: Install project dependencies
       working-directory: ${{ inputs.TESTS_SRC_DIR }}
       run: npm ci
       shell: bash
+
+    - name: Configure AWS Credentials to read env
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        aws-access-key-id: ${{ inputs.AWS_GH_ACTIONS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ inputs.AWS_GH_ACTIONS_SECRET_ACCESS_KEY }}
+        aws-region: eu-west-1
+        role-to-assume: ${{ steps.setEnvs.outputs.AWS_TESTS_EXECUTOR_ROLE }}
+        role-duration-seconds: 900
+        role-session-name: acceptance-tests
+
+    - name: build .env.${{ inputs.ENVIRONMENT_NAME }} file
+      working-directory: ${{ inputs.TESTS_SRC_DIR }}
+      shell: bash
+      run: bash generate-dotenv.sh ${{ inputs.ENVIRONMENT_NAME }}
 
     - name: Run tests
       id: acceptance-tests
